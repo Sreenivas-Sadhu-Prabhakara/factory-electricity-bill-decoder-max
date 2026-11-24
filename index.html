@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; form-action 'self'">
+  <title>Factory electricity bill decoder for maximum demand and power-factor penalties · Open MSME</title>
+  <meta name="description" content="Decode an Indian HT or LT industrial electricity bill: the demand charge, the penalty when recorded maximum demand crosses contract demand, the capacity you pay for and never draw, the power-factor surcharge, the capacitor bank size to clear it and its payback, and the saving from shifting load out of the peak slab. You enter your own tariff figures.">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:title" content="Factory electricity bill decoder for maximum demand and power-factor penalties · Open MSME">
+  <meta property="og:description" content="Enter one month's figures from your HT or LT industrial bill and see what was avoidable: demand exceedance penalty, idle contract capacity, power-factor surcharge, capacitor size and payback, peak-slab shifting.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/accent.css">
+  <script src="assets/theme-init.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">
+        <span class="dot"></span><b>Open MSME</b><span class="tag">bill decoder</span>
+      </a>
+      <span class="sp"></span>
+      <a class="home" href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">All tools</a>
+      <button class="themer" data-themer type="button">Theme</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="eyebrow">Manufacturing &amp; engineering · India</div>
+        <h1>Factory electricity bill decoder for maximum demand and power-factor penalties</h1>
+        <p class="lede">Enter one month's figures from your HT or LT industrial bill and it separates what you had to pay from what you did not: the demand-exceedance penalty, the contract capacity you pay for and never draw, the power-factor surcharge, the capacitor bank that clears it and how fast it pays back, and the saving from moving load out of the peak slab.</p>
+        <div class="who">
+          <span class="pill">Factory owners on HT / LT industrial supply</span>
+          <span class="pill reg">Electricity Act 2003, s. 62 · your DISCOM's tariff order</span>
+          <span class="pill">Nothing leaves the browser</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="cols calc">
+
+        <section class="card">
+          <h2>Inputs</h2>
+
+          <h3>How your tariff bills demand</h3>
+
+          <div class="field">
+            <label>Demand is billed in <span class="hint">read it off the demand-charge line of your bill</span></label>
+            <div class="seg" id="unit-seg">
+              <button type="button" data-unit="kVA" aria-pressed="true">kVA (apparent)</button>
+              <button type="button" data-unit="kW" aria-pressed="false">kW (real)</button>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Contract / sanctioned demand <span class="hint">from your supply agreement</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="contract-demand" value="1000" min="0" step="1" inputmode="decimal">
+                <span class="suf" id="suf-cd">kVA</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Recorded maximum demand <span class="hint">this month's MD</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="recorded-md" value="1150" min="0" step="1" inputmode="decimal">
+                <span class="suf" id="suf-md">kVA</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Highest recorded MD in the last 12 months <span class="hint">0 uses this month's — but one month is not enough to resize a contract</span></label>
+            <div class="inp has-suf">
+              <input type="number" id="peak-md-12m" value="1180" min="0" step="1" inputmode="decimal">
+              <span class="suf" id="suf-peak">kVA</span>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Demand rate, per unit per month <span class="hint">your tariff order</span></label>
+              <div class="inp has-pre has-suf">
+                <span class="pre">&#8377;</span>
+                <input type="number" id="demand-rate" value="400" min="0" step="0.01" inputmode="decimal">
+                <span class="suf" id="suf-rate">/kVA</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Penal multiple on demand above contract <span class="hint">1 = no penalty</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="penal-multiple" value="2" min="1" step="0.1" inputmode="decimal">
+                <span class="suf">&#215;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Minimum billable demand <span class="hint">% of contract demand; 0 = no clause</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="min-bill-pct" value="75" min="0" max="100" step="1" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Revision step <span class="hint">contract demand rounds up to this</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="cd-step" value="5" min="0" step="1" inputmode="decimal">
+                <span class="suf" id="suf-step">kVA</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Headroom over your peak <span class="hint">when recommending a revised contract</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="headroom-pct" value="10" min="0" step="1" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>One-time cost to revise the contract <span class="hint">deposit, fees; 0 if unknown</span></label>
+              <div class="inp has-pre">
+                <span class="pre">&#8377;</span>
+                <input type="number" id="cd-revision-cost" value="0" min="0" step="100" inputmode="decimal">
+              </div>
+            </div>
+          </div>
+
+          <h3>Power factor</h3>
+
+          <div class="row2">
+            <div class="field">
+              <label>Recorded average power factor <span class="hint">a decimal, 0 to 1 — enter 0.86, not 86</span></label>
+              <div class="inp">
+                <input type="number" id="pf-now" value="0.84" min="0.01" max="1" step="0.001" inputmode="decimal">
+              </div>
+            </div>
+            <div class="field">
+              <label>Target power factor <span class="hint">the threshold in your tariff</span></label>
+              <div class="inp">
+                <input type="number" id="pf-target" value="0.95" min="0.01" max="1" step="0.001" inputmode="decimal">
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Surcharge per 0.01 below target</label>
+              <div class="inp has-suf">
+                <input type="number" id="pf-penalty-pct" value="1" min="0" step="0.05" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Rebate per 0.01 above target</label>
+              <div class="inp has-suf">
+                <input type="number" id="pf-incentive-pct" value="0.5" min="0" step="0.05" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Cap on the power-factor adjustment <span class="hint">0 = uncapped</span></label>
+            <div class="inp has-suf">
+              <input type="number" id="pf-cap-pct" value="0" min="0" step="0.5" inputmode="decimal">
+              <span class="suf">%</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Your tariff counts the shortfall as <span class="hint">how the clause is worded</span></label>
+            <div class="seg" id="pf-step-seg">
+              <button type="button" data-pfstep="completed" aria-pressed="true">Whole 0.01 steps</button>
+              <button type="button" data-pfstep="prorata" aria-pressed="false">Pro rata</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>The surcharge applies to <span class="hint">the amount the percentage is taken on</span></label>
+            <div class="seg" id="pf-base-seg">
+              <button type="button" data-pfbase="both" aria-pressed="true">Demand + energy</button>
+              <button type="button" data-pfbase="energy" aria-pressed="false">Energy only</button>
+              <button type="button" data-pfbase="demand" aria-pressed="false">Demand only</button>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Load for capacitor sizing <span class="hint">0 derives it from MD and PF</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="sizing-kw" value="0" min="0" step="1" inputmode="decimal">
+                <span class="suf">kW</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Capacitor cost, installed <span class="hint">per kVAR, from a quote</span></label>
+              <div class="inp has-pre has-suf">
+                <span class="pre">&#8377;</span>
+                <input type="number" id="cap-cost-per-kvar" value="600" min="0" step="10" inputmode="decimal">
+                <span class="suf">/kVAR</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Panel, switchgear and installation <span class="hint">the one-time cost that does not scale with kVAR</span></label>
+            <div class="inp has-pre">
+              <span class="pre">&#8377;</span>
+              <input type="number" id="cap-fixed-cost" value="25000" min="0" step="1000" inputmode="decimal">
+            </div>
+          </div>
+
+          <h3>Units and Time-of-Day</h3>
+
+          <div class="field">
+            <label>Your tariff prints Time-of-Day as</label>
+            <div class="seg" id="tod-seg">
+              <button type="button" data-tod="percent" aria-pressed="true">% of the base rate</button>
+              <button type="button" data-tod="direct" aria-pressed="false">A rate per slab</button>
+            </div>
+          </div>
+
+          <div class="field" id="f-base-rate">
+            <label>Base energy rate, normal slab</label>
+            <div class="inp has-pre has-suf">
+              <span class="pre">&#8377;</span>
+              <input type="number" id="base-rate" value="8" min="0" step="0.01" inputmode="decimal">
+              <span class="suf">/kWh</span>
+            </div>
+          </div>
+
+          <div class="row2" id="f-tod-pct">
+            <div class="field">
+              <label>Peak slab, on the base rate</label>
+              <div class="inp has-suf">
+                <input type="number" id="tod-peak-pct" value="20" step="1" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Off-peak slab, on the base rate <span class="hint">negative = a rebate</span></label>
+              <div class="inp has-suf">
+                <input type="number" id="tod-offpeak-pct" value="-10" step="1" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="f-direct-rates" hidden>
+            <div class="row2">
+              <div class="field">
+                <label>Off-peak rate</label>
+                <div class="inp has-pre has-suf">
+                  <span class="pre">&#8377;</span>
+                  <input type="number" id="rate-offpeak" value="7.2" min="0" step="0.01" inputmode="decimal">
+                  <span class="suf">/kWh</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Normal rate</label>
+                <div class="inp has-pre has-suf">
+                  <span class="pre">&#8377;</span>
+                  <input type="number" id="rate-normal" value="8" min="0" step="0.01" inputmode="decimal">
+                  <span class="suf">/kWh</span>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Peak rate</label>
+              <div class="inp has-pre has-suf">
+                <span class="pre">&#8377;</span>
+                <input type="number" id="rate-peak" value="9.6" min="0" step="0.01" inputmode="decimal">
+                <span class="suf">/kWh</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label>Units in the off-peak slab</label>
+              <div class="inp has-suf">
+                <input type="number" id="units-offpeak" value="60000" min="0" step="100" inputmode="decimal">
+                <span class="suf">kWh</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Units in the normal slab</label>
+              <div class="inp has-suf">
+                <input type="number" id="units-normal" value="190000" min="0" step="100" inputmode="decimal">
+                <span class="suf">kWh</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Units in the peak slab</label>
+            <div class="inp has-suf">
+              <input type="number" id="units-peak" value="90000" min="0" step="100" inputmode="decimal">
+              <span class="suf">kWh</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Units you could move out of peak <span class="hint">be honest about what the process allows</span></label>
+            <div class="inp has-suf">
+              <input type="number" id="shift-kwh" value="30000" min="0" step="100" inputmode="decimal">
+              <span class="suf">kWh</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Move them into</label>
+            <div class="seg" id="shift-seg">
+              <button type="button" data-shift="offpeak" aria-pressed="true">The off-peak slab</button>
+              <button type="button" data-shift="normal" aria-pressed="false">The normal slab</button>
+            </div>
+          </div>
+
+          <h3>The rest of the bill</h3>
+
+          <div class="row2">
+            <div class="field">
+              <label>Fuel / power-purchase adjustment <span class="hint">per unit, all slabs</span></label>
+              <div class="inp has-pre has-suf">
+                <span class="pre">&#8377;</span>
+                <input type="number" id="fppca-rate" value="0.5" min="0" step="0.01" inputmode="decimal">
+                <span class="suf">/kWh</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Electricity duty / tax on sale</label>
+              <div class="inp has-suf">
+                <input type="number" id="duty-pct" value="9" min="0" step="0.5" inputmode="decimal">
+                <span class="suf">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Other charges on the bill <span class="hint">meter rent, arrears, lump-sum lines</span></label>
+            <div class="inp has-pre">
+              <span class="pre">&#8377;</span>
+              <input type="number" id="other-charges" value="5000" step="100" inputmode="decimal">
+            </div>
+          </div>
+        </section>
+
+        <section class="card sticky">
+          <h2>Result</h2>
+
+          <div class="result-primary">
+            <div class="k" id="r-key">Avoidable on this month's bill</div>
+            <div class="v" id="r-value">&#8377;0</div>
+            <div class="sub" id="r-sub">Enter your figures</div>
+          </div>
+
+          <div class="note" id="r-issues" hidden>
+            <span id="r-issues-body"></span>
+          </div>
+
+          <table class="breakdown">
+            <thead>
+              <tr><th>This month's bill, decoded</th><th class="num">&#8377;</th></tr>
+            </thead>
+            <tbody id="r-bill"></tbody>
+          </table>
+
+          <table class="breakdown">
+            <thead>
+              <tr><th>Where the avoidable money is</th><th class="num">&#8377; / month</th></tr>
+            </thead>
+            <tbody id="r-attrib"></tbody>
+          </table>
+
+          <table class="breakdown">
+            <thead>
+              <tr><th>What to do about it</th><th class="num">&#8377; / month</th></tr>
+            </thead>
+            <tbody id="r-actions"></tbody>
+          </table>
+
+          <div class="btnrow">
+            <button class="btn ghost" id="print" type="button">Print / Save PDF</button>
+            <button class="btn ghost" id="reset" type="button">Reset</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="prose">
+        <h2>How it works</h2>
+        <p>An industrial bill is four separate charges wearing one total. The decoder rebuilds each one from your figures, then rebuilds the whole bill a second time with the recommendations applied. The difference between those two complete bills is the headline figure — computing it that way is the only way to avoid counting the same rupee twice, because the three levers interact.</p>
+
+        <h2>The demand charge, and its two traps</h2>
+        <p>Demand is billed on the higher of your recorded maximum demand and a minimum percentage of your contract demand. That produces a trap in each direction, and most factories are caught by one of them.</p>
+        <p><strong>Drawing more than you contracted.</strong> The part of your MD above contract demand is billed at a multiple of the normal rate — commonly twice, sometimes more. The decoder splits that into the part you would have paid anyway and the <em>penal premium</em>, which is <code>excess &#215; rate &#215; (multiple &#8722; 1)</code>. Only the premium is avoidable money; the rest is electricity you actually used.</p>
+        <p><strong>Contracting more than you draw.</strong> If your MD never reaches the minimum-billing floor, you pay the floor regardless. That is <code>max(0, contract &#215; minimum% &#8722; recorded MD) &#215; rate</code> every month, for capacity that was never delivered to you. The tool recommends a revised contract demand covering your worst demand <em>on record</em> plus your chosen headroom, rounded up to the step your licensee accepts, and never below that peak — a saving bought by guaranteeing next year's penalty is not a saving.</p>
+        <p>The 12-month peak matters more than this month's. One low month will talk you into a contract that penalises you in the busy season, so the recommendation is driven by the highest MD you enter for the year, and the tool reports when raising the contract to cover a seasonal spike costs more in minimum billing than the penalty it removes.</p>
+
+        <h2>Power factor, and sizing the capacitor</h2>
+        <p>Power factor is <code>cos(&phi;)</code>: the share of the apparent power you draw that does real work. Below the target in your tariff you pay a surcharge for every 0.01 you fall short; above it you earn a rebate. Where demand is billed in kVA, a poor power factor costs you twice, because <code>kVA = kW / PF</code> — the same machines register a bigger demand.</p>
+        <p>The capacitor bank that closes the gap is sized by the reactive power it has to supply:</p>
+        <p><code>kVAR = kW &#215; ( tan(acos(PF_now)) &#8722; tan(acos(PF_target)) )</code></p>
+        <p>At 100 kW moving from 0.80 to 0.95 that is 100 &#215; (0.75 &#8722; 0.3287) = 42.13 kVAR. The <code>kW</code> is the real load behind your recorded peak, which is <code>recorded MD &#215; recorded PF</code> on a kVA-billed tariff; enter your own figure if you know it. Multiply by your installer's rate per kVAR, add the panel, and the payback is that cost over the monthly saving the correction produces — the surcharge you stop paying, plus the demand charge you stop paying on kVA you no longer draw.</p>
+        <p>A power factor of zero or above 1 is refused rather than computed. That is not fussiness: <code>acos</code> of anything above 1 is undefined, and <code>tan(acos(0))</code> evaluates in binary floating point to about 1.6 &#215; 10<sup>16</sup> — a finite, plausible-looking number that would size you a bank sixteen quadrillion kVAR large. A target at or below your current power factor is reported as needing no capacitor at all.</p>
+
+        <h2>Time-of-Day</h2>
+        <p>Units are entered against the off-peak, normal and peak slabs, with the slab rates either as percentages of your base rate or as the outright rates printed in your tariff. Shifting load out of peak saves the rate difference on the units moved: <code>units &#215; (peak rate &#8722; destination rate)</code>. You cannot shift more than the peak slab actually holds, so the figure is capped at your peak consumption, and if the destination slab is not cheaper the tool says the shift is worth nothing rather than dressing a loss up as a saving.</p>
+
+        <h2>Why this tool ships no tariff table</h2>
+        <p>Industrial tariffs are determined state by state. Under section 62 of the Electricity Act 2003 each State Electricity Regulatory Commission sets the tariff for its licensees, on terms it specifies under section 61, and it does so roughly every year. The demand rate, the penal multiple, the minimum-billing percentage, the power-factor target and the Time-of-Day slabs are clauses of your distribution licensee's tariff schedule and its general terms and conditions of supply — reissued with every tariff order — and your contract demand is a figure in your own agreement for supply.</p>
+        <p>A table of state rates shipped inside a tool goes stale within a year and then produces confident wrong rupees on a real bill, which is worse than producing nothing. So every rate, slab, multiple, percentage and target here is yours to enter. The numbers the page opens with are round placeholders chosen to make a worked example legible, and they belong to no state.</p>
+
+        <details class="assumptions">
+          <summary>Assumptions &amp; rates</summary>
+          <p><strong>Every figure below is an indicative placeholder, not a tariff.</strong> They are listed here only so you know exactly what the page is doing before you replace them. Read your own values off your bill and your DISCOM's current tariff order.</p>
+          <p><strong>Demand.</strong> Billed in kVA. Contract demand 1,000 kVA; recorded MD 1,150 kVA; 12-month peak 1,180 kVA; demand rate &#8377;400 per kVA per month; penal multiple 2&#215; on the excess; minimum billable demand 75% of contract; revision step 5 kVA; headroom 10%; one-time revision cost &#8377;0.</p>
+          <p><strong>Power factor.</strong> Recorded 0.84; target 0.95; surcharge 1% per 0.01 below target; rebate 0.5% per 0.01 above; no cap; whole 0.01 steps; applied to demand + energy charges; capacitor &#8377;600 per kVAR installed plus &#8377;25,000 for panel and installation; sizing kW derived from recorded MD &#215; recorded PF.</p>
+          <p><strong>Energy and Time-of-Day.</strong> Base rate &#8377;8.00 per kWh; peak +20%; off-peak &#8722;10%; 60,000 off-peak units, 190,000 normal, 90,000 peak; 30,000 units assumed shiftable out of peak into off-peak.</p>
+          <p><strong>Other lines.</strong> Fuel / power-purchase adjustment &#8377;0.50 per kWh on all units; electricity duty 9%, applied to the sum of all charges above it; other charges &#8377;5,000.</p>
+          <p><strong>Rules the tool applies to your figures.</strong> Billing demand is <code>max(min(MD, contract), contract &#215; minimum%)</code> at the normal rate, plus <code>max(0, MD &#8722; contract)</code> at the penal multiple. Power factor must lie in (0, 1]; outside that the power-factor lines are refused and the rest of the bill still decodes. A penal multiple below 1 is read as 1, a minimum-billing percentage outside 0–100 is bounded, negative rates and units are read as zero, and duty is never charged on a negative subtotal. Blank fields count as zero. Where a ratio has no denominator — utilisation with no contract demand, a rate per unit with no units — the tool prints a dash instead of a number.</p>
+          <p><strong>What is a model, not a reading.</strong> Correcting power factor is assumed to shrink the recorded kVA peak in the ratio <code>PF_now / PF_target</code> at constant real power, and the 12-month peak is assumed to improve in the same ratio. Real plant varies: the peak may occur at a different power factor from the monthly average, and an automatic bank that is switching correctly at full load may not be at light load. On a kW-billed tariff, correction changes no demand charge at all and the tool shows no reduction.</p>
+        </details>
+
+        <div class="note">This is a decoder and a planning aid, not a bill and not advice. It arithmetic-checks the figures <em>you</em> type against the rules <em>you</em> enter; it cannot know your tariff, and it does not read your bill. Before acting on any number here, confirm the rate, the penal multiple, the minimum-billing percentage and the power-factor clause against your distribution licensee's current tariff order, and confirm your contract demand against your agreement for supply. Revising contract demand is a formal application with its own charges, notice period and limits on how often it can be done; capacitor sizing for an actual installation needs a load study, harmonic assessment and a licensed contractor, because an over-compensated bank at light load causes its own problems. Everything is computed in this page and nothing is sent anywhere.</div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <span>Open MSME · open-source tool for MSMEs in India &amp; the Philippines · MIT</span>
+      <span><a href="https://sreenivas-sadhu-prabhakara.github.io/openmsme/">All tools</a></span>
+    </div>
+  </footer>
+
+  <script src="assets/ui.js"></script>
+  <script src="assets/engine.js"></script>
+  <script src="assets/calc.js"></script>
+</body>
+</html>
